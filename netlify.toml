@@ -1,6 +1,6 @@
 [build]
   base = "src/frontend"
-  publish = "src/frontend/dist"
+  publish = "dist"
   command = "pnpm install --prefer-offline && pnpm build"
 
 [[redirects]]
