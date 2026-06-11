@@ -1,6 +1,4 @@
-import { createActor } from "@/backend";
 import type { LeaderboardEntry, QuizAttempt } from "@/types";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ── localStorage helpers ───────────────────────────────────────────────────
@@ -21,65 +19,42 @@ function saveLocalAttempt(attempt: QuizAttempt): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 }
 
-// ── Mock leaderboard fallback ─────────────────────────────────────────────────
+// ── Mock leaderboard ──────────────────────────────────────────────────────
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
   {
     rank: 1,
-    score: 10,
-    total: 10,
+    score: 105,
+    total: 105,
     percentage: 100,
-    time_taken_seconds: 142,
+    time_taken_seconds: 420,
     completed_at: Date.now() - 3600000,
   },
   {
     rank: 2,
-    score: 9,
-    total: 10,
+    score: 95,
+    total: 105,
     percentage: 90,
-    time_taken_seconds: 198,
+    time_taken_seconds: 540,
     completed_at: Date.now() - 7200000,
   },
   {
     rank: 3,
-    score: 8,
-    total: 10,
+    score: 84,
+    total: 105,
     percentage: 80,
-    time_taken_seconds: 267,
+    time_taken_seconds: 660,
     completed_at: Date.now() - 14400000,
   },
 ];
 
-// ── Hooks ───────────────────────────────────────────────────────────────────────
+// ── Hooks ─────────────────────────────────────────────────────────────────
 
-/** Save a completed quiz attempt. Falls back to localStorage when backend unavailable. */
+/** Save a completed quiz attempt to localStorage. */
 export function useSaveQuizAttempt() {
-  const { actor } = useActor(createActor);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (attempt: QuizAttempt) => {
       saveLocalAttempt(attempt);
-      if (!actor) return;
-      try {
-        await actor.saveQuizAttempt({
-          quiz_id: attempt.quiz_id,
-          score: BigInt(attempt.score),
-          total: BigInt(attempt.total),
-          percentage: attempt.percentage,
-          time_taken_seconds: BigInt(attempt.time_taken_seconds),
-          correct_by_difficulty: Object.entries(
-            attempt.correct_by_difficulty,
-          ).map(
-            ([diff, val]) =>
-              [diff, BigInt(val.correct), BigInt(val.total)] as [
-                string,
-                bigint,
-                bigint,
-              ],
-          ),
-        });
-      } catch {
-        // localStorage fallback already saved
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myAttempts"] });
@@ -88,71 +63,35 @@ export function useSaveQuizAttempt() {
   });
 }
 
-/** Get all quiz attempts for the current user. */
+/** Get all quiz attempts for the current user from localStorage. */
 export function useGetMyAttempts() {
-  const { actor, isFetching } = useActor(createActor);
   return useQuery<QuizAttempt[]>({
     queryKey: ["myAttempts"],
-    queryFn: async () => {
-      if (!actor) return getLocalAttempts();
-      try {
-        const raw = await actor.getMyAttempts();
-        const mapped: QuizAttempt[] = raw.map((a) => ({
-          id: String(a.id),
-          quiz_id: a.quiz_id,
-          score: Number(a.score),
-          total: Number(a.total),
-          percentage: a.percentage,
-          time_taken_seconds: Number(a.time_taken_seconds),
-          correct_by_difficulty: Object.fromEntries(
-            (a.correct_by_difficulty as [string, bigint, bigint][]).map(
-              ([d, c, t]) => [d, { correct: Number(c), total: Number(t) }],
-            ),
-          ),
-          completed_at: Number(a.completed_at),
-        }));
-        const local = getLocalAttempts();
-        return [...mapped, ...local].filter(
-          (item, i, arr) => arr.findIndex((b) => b.id === item.id) === i,
-        );
-      } catch {
-        return getLocalAttempts();
-      }
-    },
-    enabled: !isFetching,
+    queryFn: async () => getLocalAttempts(),
     placeholderData: [],
   });
 }
 
-/** Get leaderboard entries for a specific quiz. */
+/** Get leaderboard entries — uses local attempts + mock top entries. */
 export function useGetLeaderboard(quizId: string) {
-  const { actor, isFetching } = useActor(createActor);
   return useQuery<LeaderboardEntry[]>({
     queryKey: ["leaderboard", quizId],
     queryFn: async () => {
-      if (!actor) return MOCK_LEADERBOARD;
-      try {
-        const raw = await actor.getLeaderboard(quizId, BigInt(10));
-        type RawEntry = {
-          score: bigint;
-          total: bigint;
-          percentage: number;
-          time_taken_seconds: bigint;
-          completed_at: bigint;
-        };
-        return (raw as RawEntry[]).map((entry, i) => ({
+      const local = getLocalAttempts()
+        .filter((a) => a.quiz_id === quizId)
+        .sort((a, b) => b.percentage - a.percentage)
+        .slice(0, 10)
+        .map((a, i) => ({
           rank: i + 1,
-          score: Number(entry.score),
-          total: Number(entry.total),
-          percentage: entry.percentage,
-          time_taken_seconds: Number(entry.time_taken_seconds),
-          completed_at: Number(entry.completed_at),
+          score: a.score,
+          total: a.total,
+          percentage: a.percentage,
+          time_taken_seconds: a.time_taken_seconds,
+          completed_at: a.completed_at,
         }));
-      } catch {
-        return MOCK_LEADERBOARD;
-      }
+      return local.length > 0 ? local : MOCK_LEADERBOARD;
     },
-    enabled: !isFetching && !!quizId,
+    enabled: !!quizId,
     placeholderData: MOCK_LEADERBOARD,
   });
 }
