@@ -1,0 +1,92 @@
+import type { backendInterface } from "../backend";
+
+export const mockBackend: backendInterface = {
+  saveQuizAttempt: async (_input): Promise<bigint> => BigInt(0),
+
+  getMyAttempts: async () => [
+    {
+      id: BigInt(1),
+      quiz_id: "quiz-1",
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(8),
+      total: BigInt(10),
+      percentage: 80,
+      time_taken_seconds: BigInt(234),
+      correct_by_difficulty: [
+        ["Easy", BigInt(2), BigInt(2)],
+        ["Medium", BigInt(3), BigInt(3)],
+        ["Hard", BigInt(2), BigInt(4)],
+        ["Very Hard", BigInt(1), BigInt(1)],
+      ] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 3600000),
+    },
+    {
+      id: BigInt(2),
+      quiz_id: "quiz-2",
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(7),
+      total: BigInt(10),
+      percentage: 70,
+      time_taken_seconds: BigInt(312),
+      correct_by_difficulty: [
+        ["Easy", BigInt(2), BigInt(2)],
+        ["Medium", BigInt(2), BigInt(3)],
+        ["Hard", BigInt(2), BigInt(4)],
+        ["Very Hard", BigInt(1), BigInt(1)],
+      ] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 86400000),
+    },
+    {
+      id: BigInt(3),
+      quiz_id: "quiz-3",
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(9),
+      total: BigInt(10),
+      percentage: 90,
+      time_taken_seconds: BigInt(178),
+      correct_by_difficulty: [
+        ["Easy", BigInt(2), BigInt(2)],
+        ["Medium", BigInt(3), BigInt(3)],
+        ["Hard", BigInt(3), BigInt(4)],
+        ["Very Hard", BigInt(1), BigInt(1)],
+      ] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 172800000),
+    },
+  ],
+
+  getLeaderboard: async (_quizId: string, _limit: bigint) => [
+    {
+      id: BigInt(1),
+      quiz_id: _quizId,
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(10),
+      total: BigInt(10),
+      percentage: 100,
+      time_taken_seconds: BigInt(142),
+      correct_by_difficulty: [["Easy", BigInt(2), BigInt(2)]] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 3600000),
+    },
+    {
+      id: BigInt(2),
+      quiz_id: _quizId,
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(9),
+      total: BigInt(10),
+      percentage: 90,
+      time_taken_seconds: BigInt(198),
+      correct_by_difficulty: [["Easy", BigInt(2), BigInt(2)]] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 7200000),
+    },
+    {
+      id: BigInt(3),
+      quiz_id: _quizId,
+      user: "mock-user" as unknown as import("@dfinity/principal").Principal,
+      score: BigInt(8),
+      total: BigInt(10),
+      percentage: 80,
+      time_taken_seconds: BigInt(267),
+      correct_by_difficulty: [["Easy", BigInt(2), BigInt(2)]] as [string, bigint, bigint][],
+      completed_at: BigInt(Date.now() - 14400000),
+    },
+  ],
+};

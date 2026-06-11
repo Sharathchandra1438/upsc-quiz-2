@@ -1,0 +1,25 @@
+{
+  "overview": "A modern, responsive UPSC exam preparation quiz platform with timed questions, difficulty badges, score tracking, and answer review.",
+  "features": [
+    "Quiz selection from 3 topic-based quizzes",
+    "One question at a time with 5-minute countdown timer",
+    "Difficulty badges (Easy/Medium/Hard/Very Hard)",
+    "Progress bar and question navigator",
+    "Auto-save progress to localStorage with resume on refresh",
+    "End-of-quiz results with difficulty-wise analysis",
+    "Full answer review with green/red highlighting and explanations",
+    "Dark/light mode toggle",
+    "Mock leaderboard with UPSC motivational quotes",
+    "Smooth Framer Motion animations throughout"
+  ],
+  "category": "quiz-app",
+  "tags": [
+    "upsc",
+    "quiz",
+    "education",
+    "exam-prep",
+    "react",
+    "tailwind"
+  ],
+  "last_updated": "2026-05-24T03:45:55.100Z"
+}
